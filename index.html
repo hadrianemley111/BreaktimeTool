@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>Break Time Tracker</title>
+  <meta name="description" content="A simple browser-based break time tracker for badge scanning." />
+
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+
+<body>
+  <div class="app" id="app">
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-text header-logo">amazon</div>
+
+        <div class="brand-title">
+          <h1>Break Time Tracker</h1>
+          <p>KCVG Operations</p>
+        </div>
+      </div>
+
+      <div class="header-status">
+        <span id="currentDate">Loading date...</span>
+        <span id="currentTime">Loading time...</span>
+      </div>
+    </header>
+
+    <main class="main">
+      <section class="stats" aria-label="Break status summary">
+        <div class="stat-box stat-on-break">
+          <p>ON BREAK</p>
+          <h3 id="onBreakCount">0</h3>
+        </div>
+
+        <div class="stat-box stat-late">
+          <p>LATE</p>
+          <h3 id="lateCount">0</h3>
+        </div>
+
+        <div class="stat-box stat-returned">
+          <p>RETURNED</p>
+          <h3 id="returnedCount">0</h3>
+        </div>
+
+        <div class="stat-box stat-total">
+          <p>TOTAL SCANS</p>
+          <h3 id="totalCount">0</h3>
+        </div>
+      </section>
+
+      <section class="grid">
+        <div>
+          <section class="card scanner-card" aria-labelledby="scanHeading">
+            <div class="scanner-title">
+              <h2 id="scanHeading">Scan Badge</h2>
+
+              <button type="button" class="btn-secondary" id="settingsButton">
+                Settings
+              </button>
+            </div>
+
+            <div class="settings-summary">
+              Break:
+              <span id="summaryBreak">30</span> min |
+              Grace:
+              <span id="summaryGrace">5</span> min
+            </div>
+
+            <label for="badgeInput">Badge Number</label>
+            <input
+              type="text"
+              id="badgeInput"
+              class="scan-input"
+              placeholder="SCAN BADGE"
+              autocomplete="off"
+              inputmode="numeric"
+            />
+
+            <div class="scan-help">
+              Press Enter after scanning. Same badge again marks returned.
+            </div>
+
+            <label for="nameInput">Name Optional</label>
+            <input
+              type="text"
+              id="nameInput"
+              placeholder="Optional name"
+              autocomplete="off"
+            />
+
+            <div class="last-scan" id="lastScan" aria-live="polite">
+              <strong>Last Scan:</strong> None
+            </div>
+          </section>
+
+          <section class="card" aria-labelledby="dataToolsHeading">
+            <h2 id="dataToolsHeading">Data Tools</h2>
+
+            <div class="btn-row">
+              <button type="button" class="btn-secondary" id="downloadButton">
+                Download
+              </button>
+
+              <button type="button" class="btn-secondary" id="uploadButton">
+                Upload
+              </button>
+
+              <button type="button" class="btn-danger" id="clearButton">
+                Clear
+              </button>
+            </div>
+
+            <input
+              type="file"
+              id="uploadFile"
+              class="hidden-file"
+              accept=".json"
+            />
+          </section>
+        </div>
+
+        <section class="card" aria-labelledby="breakBoardHeading">
+          <h2 id="breakBoardHeading">Break Board</h2>
+
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Badge</th>
+                  <th>Name</th>
+                  <th>Break Start</th>
+                  <th>Due Back</th>
+                  <th>Returned</th>
+                  <th>Status</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+
+              <tbody id="breakTableBody"></tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsHeading">
+    <div class="modal">
+      <div class="modal-header">
+        <h2 id="settingsHeading">Break Settings</h2>
+
+        <button type="button" class="close-btn" id="closeSettingsButton" aria-label="Close settings">
+          X
+        </button>
+      </div>
+
+      <label for="breakMinutes">Break Length</label>
+      <select id="breakMinutes">
+        <option value="15">15 Minutes</option>
+        <option value="30">30 Minutes</option>
+        <option value="45">45 Minutes</option>
+        <option value="60">60 Minutes</option>
+      </select>
+
+      <label for="lateGrace">Grace Period</label>
+      <select id="lateGrace">
+        <option value="0">No Grace</option>
+        <option value="2">2 Minutes</option>
+        <option value="5">5 Minutes</option>
+        <option value="10">10 Minutes</option>
+      </select>
+
+      <div class="btn-row">
+        <button type="button" id="saveSettingsButton">
+          Save Settings
+        </button>
+
+        <button type="button" class="btn-secondary" id="cancelSettingsButton">
+          Cancel
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
