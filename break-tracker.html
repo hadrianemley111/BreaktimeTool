@@ -17,7 +17,7 @@
       color: #111827;
     }
 
-    /* ===== TOP HEADER ===== */
+    /* ===== HEADER ===== */
 
     .app-header {
       height: 78px;
@@ -50,7 +50,6 @@
       font-size: 24px;
       font-weight: 700;
       color: #111827;
-      letter-spacing: 0.2px;
     }
 
     .brand-title p {
@@ -76,7 +75,7 @@
       border-radius: 8px;
     }
 
-    /* ===== MAIN LAYOUT ===== */
+    /* ===== LAYOUT ===== */
 
     .main {
       max-width: 1250px;
@@ -86,8 +85,9 @@
 
     .grid {
       display: grid;
-      grid-template-columns: 360px 1fr;
+      grid-template-columns: 400px 1fr;
       gap: 20px;
+      align-items: start;
     }
 
     .card {
@@ -101,7 +101,7 @@
 
     .card h2 {
       margin: 0 0 16px;
-      font-size: 19px;
+      font-size: 20px;
       color: #111827;
       border-bottom: 1px solid #e5e7eb;
       padding-bottom: 10px;
@@ -120,7 +120,7 @@
       width: 100%;
       border: 1px solid #cbd5e1;
       border-radius: 8px;
-      padding: 11px;
+      padding: 12px;
       font-size: 15px;
       margin-bottom: 14px;
       background: #ffffff;
@@ -150,12 +150,6 @@
       transform: translateY(-1px);
     }
 
-    .btn-row {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-
     .btn-secondary {
       background: #232f3e;
       color: #ffffff;
@@ -174,9 +168,78 @@
       background: #b91c1c;
     }
 
-    .btn-full {
-      width: 100%;
-      margin-top: 4px;
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .hidden-file {
+      display: none;
+    }
+
+    /* ===== SCANNER MAIN BOX ===== */
+
+    .scanner-card {
+      border-top: 6px solid #ff9900;
+    }
+
+    .scanner-title {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+
+    .scanner-title h2 {
+      margin: 0;
+      border: none;
+      padding: 0;
+      font-size: 22px;
+    }
+
+    .scan-input {
+      font-size: 28px;
+      font-weight: 800;
+      text-align: center;
+      padding: 20px;
+      letter-spacing: 1px;
+      border: 2px solid #ff9900;
+      background: #fffaf2;
+    }
+
+    .scan-help {
+      text-align: center;
+      color: #6b7280;
+      font-size: 13px;
+      font-weight: 700;
+      margin: -4px 0 18px;
+    }
+
+    .last-scan {
+      background: #f9fafb;
+      border: 1px solid #e5e7eb;
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 14px;
+      color: #374151;
+      margin-top: 8px;
+    }
+
+    .last-scan strong {
+      color: #111827;
+    }
+
+    .settings-summary {
+      background: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 14px;
+      font-size: 14px;
+      font-weight: 700;
+      color: #374151;
     }
 
     /* ===== STATS ===== */
@@ -281,15 +344,56 @@
       border: 1px solid #bbf7d0;
     }
 
-    .small-note {
-      font-size: 12px;
-      color: #6b7280;
-      margin-top: -6px;
-      margin-bottom: 12px;
+    /* ===== POPUP SETTINGS ===== */
+
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 24, 39, 0.55);
+      z-index: 2000;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
     }
 
-    .hidden-file {
-      display: none;
+    .modal-overlay.show {
+      display: flex;
+    }
+
+    .modal {
+      background: #ffffff;
+      width: 100%;
+      max-width: 430px;
+      border-radius: 16px;
+      border: 1px solid #d5d9d9;
+      box-shadow: 0 20px 45px rgba(0, 0, 0, 0.25);
+      padding: 22px;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 18px;
+      border-bottom: 1px solid #e5e7eb;
+      padding-bottom: 12px;
+    }
+
+    .modal-header h2 {
+      margin: 0;
+      font-size: 21px;
+    }
+
+    .close-btn {
+      background: #e5e7eb;
+      color: #111827;
+      padding: 7px 11px;
+      border-radius: 8px;
+    }
+
+    .close-btn:hover {
+      background: #d1d5db;
     }
 
     @media (max-width: 950px) {
@@ -318,7 +422,6 @@
 
 <body>
 
-  <!-- ===== HEADER ===== -->
   <header class="app-header">
     <div class="brand">
       <img
@@ -339,10 +442,8 @@
     </div>
   </header>
 
-  <!-- ===== MAIN ===== -->
   <main class="main">
 
-    <!-- ===== STATS ===== -->
     <section class="stats">
       <div class="stat-box stat-on-break">
         <p>ON BREAK</p>
@@ -367,53 +468,45 @@
 
     <section class="grid">
 
-      <!-- ===== LEFT PANEL ===== -->
+      <!-- LEFT MAIN SCANNER -->
       <div>
 
-        <div class="card">
-          <h2>Break Setup</h2>
+        <div class="card scanner-card">
+          <div class="scanner-title">
+            <h2>Scan Badge</h2>
+            <button class="btn-secondary" onclick="openSettings()">Settings</button>
+          </div>
 
-          <label for="breakMinutes">Break Length</label>
-          <select id="breakMinutes">
-            <option value="15">15 Minutes</option>
-            <option value="30" selected>30 Minutes</option>
-            <option value="45">45 Minutes</option>
-            <option value="60">60 Minutes</option>
-          </select>
-
-          <label for="lateGrace">Grace Period</label>
-          <select id="lateGrace">
-            <option value="0">No Grace</option>
-            <option value="2">2 Minutes</option>
-            <option value="5" selected>5 Minutes</option>
-            <option value="10">10 Minutes</option>
-          </select>
-
-          <p class="small-note">
-            Late time is break length plus grace period.
-          </p>
-        </div>
-
-        <div class="card">
-          <h2>Scan Badge</h2>
+          <div class="settings-summary">
+            Break: <span id="summaryBreak">30</span> min |
+            Grace: <span id="summaryGrace">5</span> min
+          </div>
 
           <label for="badgeInput">Badge Number</label>
           <input
             type="text"
             id="badgeInput"
-            placeholder="Scan or enter badge number"
+            class="scan-input"
+            placeholder="SCAN BADGE"
             autocomplete="off"
+            autofocus
           />
 
-          <label for="nameInput">Name</label>
+          <div class="scan-help">
+            Press Enter after scanning. Same badge again marks returned.
+          </div>
+
+          <label for="nameInput">Name Optional</label>
           <input
             type="text"
             id="nameInput"
-            placeholder="Name optional"
+            placeholder="Optional name"
             autocomplete="off"
           />
 
-          <button class="btn-full" onclick="scanBadge()">Scan Badge</button>
+          <div class="last-scan" id="lastScan">
+            <strong>Last Scan:</strong> None
+          </div>
         </div>
 
         <div class="card">
@@ -436,7 +529,7 @@
 
       </div>
 
-      <!-- ===== RIGHT PANEL ===== -->
+      <!-- RIGHT BREAK BOARD -->
       <div class="card">
         <h2>Break Board</h2>
 
@@ -454,9 +547,7 @@
               </tr>
             </thead>
 
-            <tbody id="breakTableBody">
-              <!-- Rows load here -->
-            </tbody>
+            <tbody id="breakTableBody"></tbody>
           </table>
         </div>
       </div>
@@ -464,8 +555,44 @@
     </section>
   </main>
 
+  <!-- SETTINGS POPUP -->
+  <div class="modal-overlay" id="settingsModal">
+    <div class="modal">
+      <div class="modal-header">
+        <h2>Break Settings</h2>
+        <button class="close-btn" onclick="closeSettings()">X</button>
+      </div>
+
+      <label for="breakMinutes">Break Length</label>
+      <select id="breakMinutes">
+        <option value="15">15 Minutes</option>
+        <option value="30">30 Minutes</option>
+        <option value="45">45 Minutes</option>
+        <option value="60">60 Minutes</option>
+      </select>
+
+      <label for="lateGrace">Grace Period</label>
+      <select id="lateGrace">
+        <option value="0">No Grace</option>
+        <option value="2">2 Minutes</option>
+        <option value="5">5 Minutes</option>
+        <option value="10">10 Minutes</option>
+      </select>
+
+      <div class="btn-row">
+        <button onclick="saveSettings()">Save Settings</button>
+        <button class="btn-secondary" onclick="closeSettings()">Cancel</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     let breakData = JSON.parse(localStorage.getItem("breakTrackerData")) || [];
+
+    let settings = JSON.parse(localStorage.getItem("breakTrackerSettings")) || {
+      breakMinutes: 30,
+      lateGrace: 5
+    };
 
     function updateHeaderClock() {
       const now = new Date();
@@ -493,6 +620,37 @@
       localStorage.setItem("breakTrackerData", JSON.stringify(breakData));
     }
 
+    function saveSettingsToStorage() {
+      localStorage.setItem("breakTrackerSettings", JSON.stringify(settings));
+    }
+
+    function loadSettingsIntoPage() {
+      document.getElementById("breakMinutes").value = settings.breakMinutes;
+      document.getElementById("lateGrace").value = settings.lateGrace;
+
+      document.getElementById("summaryBreak").textContent = settings.breakMinutes;
+      document.getElementById("summaryGrace").textContent = settings.lateGrace;
+    }
+
+    function openSettings() {
+      loadSettingsIntoPage();
+      document.getElementById("settingsModal").classList.add("show");
+    }
+
+    function closeSettings() {
+      document.getElementById("settingsModal").classList.remove("show");
+      document.getElementById("badgeInput").focus();
+    }
+
+    function saveSettings() {
+      settings.breakMinutes = Number(document.getElementById("breakMinutes").value);
+      settings.lateGrace = Number(document.getElementById("lateGrace").value);
+
+      saveSettingsToStorage();
+      loadSettingsIntoPage();
+      closeSettings();
+    }
+
     function scanBadge() {
       const badgeInput = document.getElementById("badgeInput");
       const nameInput = document.getElementById("nameInput");
@@ -501,7 +659,6 @@
       const name = nameInput.value.trim();
 
       if (!badge) {
-        alert("Scan or enter a badge number.");
         badgeInput.focus();
         return;
       }
@@ -513,14 +670,14 @@
       if (activeBreak) {
         activeBreak.returnTime = new Date().toISOString();
         activeBreak.status = "Returned";
+
+        document.getElementById("lastScan").innerHTML =
+          `<strong>Last Scan:</strong> ${badge} marked Returned`;
       } else {
         const now = new Date();
 
-        const breakMinutes = Number(document.getElementById("breakMinutes").value);
-        const graceMinutes = Number(document.getElementById("lateGrace").value);
-
         const dueBack = new Date(
-          now.getTime() + (breakMinutes + graceMinutes) * 60000
+          now.getTime() + (settings.breakMinutes + settings.lateGrace) * 60000
         );
 
         breakData.push({
@@ -531,6 +688,9 @@
           returnTime: "",
           status: "On Break"
         });
+
+        document.getElementById("lastScan").innerHTML =
+          `<strong>Last Scan:</strong> ${badge} started break`;
       }
 
       saveData();
@@ -630,6 +790,7 @@
 
       saveData();
       renderTable();
+      document.getElementById("badgeInput").focus();
     }
 
     function deleteRow(index) {
@@ -638,6 +799,7 @@
       breakData.splice(index, 1);
       saveData();
       renderTable();
+      document.getElementById("badgeInput").focus();
     }
 
     function clearAllData() {
@@ -646,16 +808,24 @@
       breakData = [];
       saveData();
       renderTable();
+      document.getElementById("badgeInput").focus();
     }
 
     function downloadData() {
-      const dataStr = JSON.stringify(breakData, null, 2);
+      const exportObject = {
+        settings: settings,
+        breakData: breakData
+      };
+
+      const dataStr = JSON.stringify(exportObject, null, 2);
       const blob = new Blob([dataStr], { type: "application/json" });
 
       const link = document.createElement("a");
       link.href = URL.createObjectURL(blob);
       link.download = "break-tracker-data.json";
       link.click();
+
+      document.getElementById("badgeInput").focus();
     }
 
     function uploadData(event) {
@@ -669,16 +839,20 @@
         try {
           const uploadedData = JSON.parse(e.target.result);
 
-          if (!Array.isArray(uploadedData)) {
-            alert("Invalid file.");
-            return;
+          if (Array.isArray(uploadedData)) {
+            breakData = uploadedData;
+          } else {
+            breakData = uploadedData.breakData || [];
+            settings = uploadedData.settings || settings;
           }
 
-          breakData = uploadedData;
           saveData();
+          saveSettingsToStorage();
+          loadSettingsIntoPage();
           renderTable();
 
           alert("Data uploaded successfully.");
+          document.getElementById("badgeInput").focus();
         } catch (error) {
           alert("Could not read file.");
         }
@@ -689,12 +863,32 @@
 
     document.getElementById("badgeInput").addEventListener("keydown", function(e) {
       if (e.key === "Enter") {
+        e.preventDefault();
         scanBadge();
       }
     });
 
+    document.getElementById("nameInput").addEventListener("keydown", function(e) {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        document.getElementById("badgeInput").focus();
+      }
+    });
+
+    document.getElementById("settingsModal").addEventListener("click", function(e) {
+      if (e.target.id === "settingsModal") {
+        closeSettings();
+      }
+    });
+
     setInterval(renderTable, 10000);
+
+    loadSettingsIntoPage();
     renderTable();
+
+    window.onload = function() {
+      document.getElementById("badgeInput").focus();
+    };
   </script>
 
 </body>
