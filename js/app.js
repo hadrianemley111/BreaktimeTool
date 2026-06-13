@@ -367,45 +367,27 @@ function getLatePeople() {
   return breakData.filter(item => getStatus(item) === "Late");
 }
 
-function buildSlackPayload(message, extraFields = {}) {
-  return {
-    text: message,
-    message: message,
-    ...extraFields
-  };
-}
-
 function buildSingleLatePayload(item) {
   const name = item.name && item.name !== "Unknown" ? item.name : "Unknown name";
   const minutesLate = getMinutesLate(item);
-  const message =
-    `:rotating_light: Break Late Alert
-` +
-    `Name: ${name}
-` +
-    `Badge: ${item.badge}
-` +
-    `Due Back: ${formatTime(item.dueBack)}
-` +
-    `Minutes Late: ${minutesLate}`;
 
-  return buildSlackPayload(message, {
-    alertType: "break_late",
-    name,
-    badge: item.badge,
-    dueBack: formatTime(item.dueBack),
-    minutesLate: String(minutesLate)
-  });
+  return {
+    text:
+      `:rotating_light: Break late alert\n` +
+      `*Name:* ${name}\n` +
+      `*Badge:* ${item.badge}\n` +
+      `*Due back:* ${formatTime(item.dueBack)}\n` +
+      `*Minutes late:* ${minutesLate}`
+  };
 }
 
 function buildLateListPayload() {
   const latePeople = getLatePeople();
 
   if (latePeople.length === 0) {
-    return buildSlackPayload(":white_check_mark: No one is currently late from break.", {
-      alertType: "late_list",
-      lateCount: "0"
-    });
+    return {
+      text: ":white_check_mark: No one is currently late from break."
+    };
   }
 
   const lines = latePeople.map(item => {
@@ -413,15 +395,9 @@ function buildLateListPayload() {
     return `• ${name} | Badge ${item.badge} | Due ${formatTime(item.dueBack)} | ${getMinutesLate(item)} min late`;
   });
 
-  return buildSlackPayload(
-    `:rotating_light: Current Late Break List (${latePeople.length})
-${lines.join("
-")}`,
-    {
-      alertType: "late_list",
-      lateCount: String(latePeople.length)
-    }
-  );
+  return {
+    text: `:rotating_light: Current late break list (${latePeople.length})\n${lines.join("\n")}`
+  };
 }
 
 async function sendSlackPayload(payload) {
@@ -464,12 +440,9 @@ async function sendLateListToSlack() {
 async function testSlack() {
   saveSettings();
 
-  const sent = await sendSlackPayload(
-    buildSlackPayload(":white_check_mark: Slack connected", {
-      alertType: "test",
-      status: "connected"
-    })
-  );
+  const sent = await sendSlackPayload({
+    text: ":white_check_mark: Slack connected"
+  });
 
   elements.lastScan.innerHTML = sent
     ? "<strong>Slack:</strong> Test sent. Slack should say Slack connected."

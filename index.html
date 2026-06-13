@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>Break Time Tracker</title>
-  <meta name="description" content="A simple browser-based break time tracker for badge scanning." />
+  <meta name="description" content="A browser-based break time tracker for badge scanning with optional Slack late alerts." />
 
   <link rel="stylesheet" href="css/styles.css" />
 </head>
@@ -14,15 +14,23 @@
   <div class="app" id="app">
     <header class="app-header">
       <div class="brand">
-        <div class="logo-text header-logo">amazon</div>
+        <div class="amazon-wordmark" aria-label="Amazon KCVG Operations">
+          <svg viewBox="0 0 220 86" role="img" aria-label="Amazon" xmlns="http://www.w3.org/2000/svg">
+            <text x="8" y="46" class="amazon-text">amazon</text>
+            <path class="amazon-smile" d="M55 58 C92 81, 148 78, 196 55" />
+            <path class="amazon-arrow" d="M183 53 L201 54 L192 69" />
+          </svg>
+          <span class="site-chip">KCVG OPS</span>
+        </div>
 
         <div class="brand-title">
           <h1>Break Time Tracker</h1>
-          <p>KCVG Operations</p>
+          <p>Amazon Operations</p>
         </div>
       </div>
 
       <div class="header-status">
+        <span id="slackStatus" class="slack-status off">Slack Off</span>
         <span id="currentDate">Loading date...</span>
         <span id="currentTime">Loading time...</span>
       </div>
@@ -66,7 +74,9 @@
               Break:
               <span id="summaryBreak">30</span> min |
               Grace:
-              <span id="summaryGrace">5</span> min
+              <span id="summaryGrace">5</span> min |
+              Slack:
+              <span id="summarySlack">Off</span>
             </div>
 
             <label for="badgeInput">Badge Number</label>
@@ -112,18 +122,16 @@
                 Clear
               </button>
             </div>
-
-            <input
-              type="file"
-              id="uploadFile"
-              class="hidden-file"
-              accept=".json"
-            />
           </section>
         </div>
 
         <section class="card" aria-labelledby="breakBoardHeading">
-          <h2 id="breakBoardHeading">Break Board</h2>
+          <div class="board-header">
+            <h2 id="breakBoardHeading">Break Board</h2>
+            <button type="button" class="btn-secondary compact-btn" id="sendLateNowButton">
+              Send Late List to Slack
+            </button>
+          </div>
 
           <div class="table-wrap">
             <table>
@@ -150,12 +158,14 @@
   <div class="modal-overlay" id="settingsModal" role="dialog" aria-modal="true" aria-labelledby="settingsHeading">
     <div class="modal">
       <div class="modal-header">
-        <h2 id="settingsHeading">Break Settings</h2>
+        <h2 id="settingsHeading">Settings</h2>
 
         <button type="button" class="close-btn" id="closeSettingsButton" aria-label="Close settings">
           X
         </button>
       </div>
+
+      <h3 class="settings-section-title">Break Timing</h3>
 
       <label for="breakMinutes">Break Length</label>
       <select id="breakMinutes">
@@ -173,9 +183,32 @@
         <option value="10">10 Minutes</option>
       </select>
 
+      <h3 class="settings-section-title">Slack Late Alerts</h3>
+
+      <label class="checkbox-row" for="slackEnabled">
+        <input type="checkbox" id="slackEnabled" />
+        <span>Send Slack alert when a person becomes late</span>
+      </label>
+
+      <label for="slackWebhookUrl">Slack Incoming Webhook URL</label>
+      <input
+        type="password"
+        id="slackWebhookUrl"
+        placeholder="https://hooks.slack.com/services/..."
+        autocomplete="off"
+      />
+
+      <p class="settings-note">
+        Do not commit your Slack webhook URL to GitHub. This app saves it only in this browser.
+      </p>
+
       <div class="btn-row">
         <button type="button" id="saveSettingsButton">
           Save Settings
+        </button>
+
+        <button type="button" class="btn-secondary" id="testSlackButton">
+          Test Slack
         </button>
 
         <button type="button" class="btn-secondary" id="cancelSettingsButton">
@@ -184,6 +217,13 @@
       </div>
     </div>
   </div>
+
+  <input
+    type="file"
+    id="uploadFile"
+    class="hidden-file"
+    accept=".json"
+  />
 
   <script src="js/app.js"></script>
 </body>

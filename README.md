@@ -4,6 +4,8 @@ A browser-based break time tracker for badge scanning with optional Slack late a
 
 ## Features
 
+- Crisp SVG Amazon-style header mark that does not get blurry on GitHub Pages
+
 - Badge scan input optimized for scanner + Enter key
 - Same badge scanned twice marks the person returned
 - Configurable break duration and grace period
@@ -38,16 +40,6 @@ Slack incoming webhooks are designed to receive a JSON payload over HTTP. The br
 8. Use **Test Slack** to send a test message.
 
 When someone becomes late, the app sends one alert for that person. It will not keep spamming every refresh.
-
-### Slack Workflow Builder Note
-
-If you are using a Slack **Workflow Builder webhook trigger** instead of a normal Incoming Webhook, set the Slack message step to post the variable named:
-
-```text
-message
-```
-
-The app sends both `text` and `message`. The `message` field is the clean formatted alert. If your workflow posts separate variables like `name`, `badge`, or `dueBack`, Slack will only show those pieces instead of the full alert.
 
 ## Project Structure
 
@@ -103,3 +95,10 @@ break-time-tracker
 - Backend Slack proxy for more secure Slack alerts
 - Audit log
 - Admin-only settings
+
+
+## Latest fixes
+
+- Fixed backup download by creating and clicking a temporary download link reliably.
+- Fixed upload by resetting the file input before each upload and accepting both old array-only backups and newer full backup files.
+- Slack test now posts `Slack connected` to the configured Slack channel.
