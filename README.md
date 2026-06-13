@@ -15,5 +15,55 @@ A simple browser-based break time tracker for badge scanning.
 - Local browser storage
 - JSON upload/download for moving data between computers
 
+## Project Structure
 
+```text
+break-time-tracker/
+├── index.html
+├── css/
+│   └── styles.css
+├── js/
+│   └── app.js
+├── README.md
+└── .gitignore
+```
 
+## How to Run Locally
+
+Open `index.html` in a browser.
+
+No build step is required.
+
+## GitHub Pages
+
+This project can run on GitHub Pages because it is static HTML, CSS, and JavaScript.
+
+1. Create a GitHub repository.
+2. Upload these files.
+3. Go to **Settings → Pages**.
+4. Choose the main branch and root folder.
+5. Open the GitHub Pages link.
+
+## Data Storage
+
+The app saves data in the browser using `localStorage`.
+
+That means:
+
+- Data stays on the computer/browser where it was entered.
+- Clearing browser storage will erase the saved tracker data.
+- Use **Download** to back up the data.
+- Use **Upload** to move the data to another computer.
+
+## Suggested Repository Name
+
+```text
+break-time-tracker
+```
+
+## Future Improvements
+
+- Employee name lookup from approved internal source
+- Shared database instead of local browser storage
+- Audit log
+- Admin-only settings

@@ -1,7 +1,6 @@
 const STORAGE_KEYS = {
   data: "breakTrackerData",
-  settings: "breakTrackerSettings",
-  accessAcknowledged: "breakTrackerAccessAcknowledged"
+  settings: "breakTrackerSettings"
 };
 
 const DEFAULT_SETTINGS = {
@@ -9,16 +8,11 @@ const DEFAULT_SETTINGS = {
   lateGrace: 5
 };
 
-const PERMISSIONS_TEAM_URL =
-  "https://permissions.amazon.com/a/team/Break%20Time%20KCVG";
-
 let breakData = readJson(STORAGE_KEYS.data, []);
 let settings = readJson(STORAGE_KEYS.settings, DEFAULT_SETTINGS);
 
 const elements = {
-  accessScreen: document.getElementById("accessScreen"),
   app: document.getElementById("app"),
-  continueButton: document.getElementById("continueButton"),
 
   currentDate: document.getElementById("currentDate"),
   currentTime: document.getElementById("currentTime"),
@@ -87,25 +81,8 @@ function loadSettingsIntoPage() {
   elements.summaryGrace.textContent = settings.lateGrace;
 }
 
-function continueToApp() {
-  localStorage.setItem(STORAGE_KEYS.accessAcknowledged, "true");
-  showApp();
-}
-
-function showApp() {
-  elements.accessScreen.style.display = "none";
-  elements.app.style.display = "block";
-
+function focusScanner() {
   setTimeout(() => elements.badgeInput.focus(), 100);
-}
-
-function checkAccessGate() {
-  const acknowledged =
-    localStorage.getItem(STORAGE_KEYS.accessAcknowledged) === "true";
-
-  if (acknowledged) {
-    showApp();
-  }
 }
 
 function updateHeaderClock() {
@@ -288,7 +265,6 @@ function downloadData() {
   const exportObject = {
     app: "Break Time Tracker",
     version: "1.0.0",
-    permissionsTeamUrl: PERMISSIONS_TEAM_URL,
     exportedAt: new Date().toISOString(),
     settings,
     breakData
@@ -363,7 +339,6 @@ function escapeHtml(value) {
 }
 
 function bindEvents() {
-  elements.continueButton.addEventListener("click", continueToApp);
   elements.settingsButton.addEventListener("click", openSettings);
   elements.closeSettingsButton.addEventListener("click", closeSettings);
   elements.cancelSettingsButton.addEventListener("click", closeSettings);
@@ -418,7 +393,7 @@ function init() {
   loadSettingsIntoPage();
   updateHeaderClock();
   renderTable();
-  checkAccessGate();
+  focusScanner();
 
   setInterval(updateHeaderClock, 1000);
   setInterval(renderTable, 10000);

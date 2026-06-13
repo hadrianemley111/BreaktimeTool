@@ -90,76 +90,12 @@ select {
   font-size: 30px;
 }
 
-/* Access screen */
-
-.access-screen {
-  min-height: 100vh;
-  background: linear-gradient(135deg, var(--amazon-blue), #111827);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 30px;
-}
-
-.access-card {
-  width: 100%;
-  max-width: 520px;
-  background: var(--card);
-  border-radius: 18px;
-  box-shadow: 0 25px 55px rgba(0, 0, 0, 0.35);
-  padding: 34px;
-  text-align: center;
-  border-top: 7px solid var(--amazon-orange);
-}
-
-.access-card h1 {
-  margin: 24px 0 10px;
-  font-size: 30px;
-}
-
-.access-card p {
-  color: #4b5563;
-  font-size: 15px;
-  line-height: 1.5;
-  margin: 8px 0;
-}
-
-.access-warning {
-  background: #fff7ed;
-  border: 1px solid #fed7aa;
-  color: #9a3412;
-  border-radius: 10px;
-  padding: 12px;
-  margin: 18px 0;
-  font-size: 14px;
-  font-weight: 700;
-}
-
-.access-buttons {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 22px;
-}
-
-.access-link {
-  display: block;
-  text-decoration: none;
-  background: var(--amazon-blue);
-  color: #ffffff;
-  padding: 13px 18px;
-  border-radius: 9px;
-  font-weight: 800;
-}
-
-.access-link:hover {
-  background: #1a2533;
-}
-
 /* App */
 
+
+
 .app {
-  display: none;
+  display: block;
 }
 
 .app-header {
