@@ -1,32 +1,43 @@
 # Break Time Tracker
 
-Browser-based break time tracker for badge scanning with optional Slack late alerts.
+A browser-based break time tracker for badge scanning with optional Slack Workflow Builder late alerts.
 
-## How to run
+## GitHub Pages setup
 
-Open `index.html` directly, or publish the repo with GitHub Pages.
+Upload these files to the root of your GitHub repo:
+
+```text
+index.html
+css/styles.css
+js/app.js
+README.md
+```
+
+Then enable GitHub Pages from **Settings → Pages → Deploy from branch → main → /root**.
 
 ## Slack setup
 
-1. Open the tracker.
-2. Click **Settings**.
-3. Check **Send Slack alert when a person becomes late**.
-4. Paste your Slack webhook URL.
-5. Click **Save Settings**.
-6. Reopen **Settings** and click **Test Slack**.
-
-The Slack test sends exactly:
+This version is made for a Slack Workflow Builder webhook with one data variable:
 
 ```text
-Slack connected
+Key: message
+Data type: Text
 ```
 
-For Slack Workflow Builder webhooks, make the workflow message post the `message` variable.
-For normal Slack Incoming Webhooks, Slack uses the `text` field.
+The app sends this JSON body:
 
-The webhook URL is saved only in your browser local storage. Do not commit webhook URLs to GitHub.
+```json
+{
+  "message": "Slack connected"
+}
+```
 
-## Data
+In the Slack workflow **Send a message to a channel** step, insert the webhook variable named `message` from the variable picker.
 
-Use **Download** to export the tracker data as JSON.
-Use **Upload** to import a saved JSON backup.
+Do not add separate webhook variables like `Name`, `badge`, `text`, or `dueBack`.
+
+## Notes
+
+- The Slack webhook URL is saved only in the browser local storage.
+- Do not commit your Slack webhook URL to GitHub.
+- Use browser DevTools Console to inspect the exact Slack payload being sent.
