@@ -108,6 +108,10 @@ tr:hover { background: #f9fafb; }
 .status-on-break { background: #fff7ed; color: #c2410c; border: 1px solid #fed7aa; }
 .status-late { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
 .status-returned { background: #f0fdf4; color: #15803d; border: 1px solid #bbf7d0; }
+.late-returned-row { background: #fff7f7; }
+.late-returned-row:hover { background: #feecec; }
+.return-late { color: #b91c1c; font-weight: 900; background: #fef2f2; }
+
 
 .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(17, 24, 39, 0.58); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
 .modal-overlay.show { display: flex; }

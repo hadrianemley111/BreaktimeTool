@@ -119,7 +119,7 @@ function updateHeaderClock() {
   });
 }
 
-function scanBadge() {
+async function scanBadge() {
   const badge = el.badgeInput.value.trim();
   const name = el.nameInput.value.trim();
 
@@ -128,12 +128,22 @@ function scanBadge() {
     return;
   }
 
-  const activeBreak = breakData.find(item => item.badge === badge && item.status !== "Returned");
+  const activeBreak = breakData.find(item => item.badge === badge && !item.returnTime);
 
   if (activeBreak) {
     activeBreak.returnTime = new Date().toISOString();
-    activeBreak.status = "Returned";
-    setLastScan(`${escapeHtml(badge)} marked Returned`);
+
+    const minutesLate = getMinutesLateAtReturn(activeBreak);
+
+    if (minutesLate > 0) {
+      activeBreak.status = "Late";
+      activeBreak.lateMinutes = minutesLate;
+      setLastScan(`${escapeHtml(badge)} returned late by ${minutesLate} min`);
+      await sendReturnedLateAlert(activeBreak);
+    } else {
+      activeBreak.status = "Returned";
+      setLastScan(`${escapeHtml(badge)} marked Returned`);
+    }
   } else {
     const now = new Date();
     const dueBack = new Date(now.getTime() + (settings.breakMinutes + settings.lateGrace) * 60000);
@@ -147,7 +157,9 @@ function scanBadge() {
       returnTime: "",
       status: "On Break",
       slackLateNotified: false,
-      lateAlertSent: false
+      lateAlertSent: false,
+      returnLateAlertSent: false,
+      lateMinutes: 0
     });
 
     setLastScan(`${escapeHtml(badge)} started break`);
@@ -170,8 +182,18 @@ function setLastScan(message) {
 }
 
 function getStatus(item) {
-  if (item.status === "Returned") return "Returned";
-  return new Date() > new Date(item.dueBack) ? "Late" : "On Break";
+  const dueBack = new Date(item.dueBack);
+  const returned = item.returnTime ? new Date(item.returnTime) : null;
+
+  if (returned && !Number.isNaN(returned.getTime())) {
+    if (!Number.isNaN(dueBack.getTime()) && returned > dueBack) {
+      return "Late";
+    }
+
+    return "Returned";
+  }
+
+  return new Date() > dueBack ? "Late" : "On Break";
 }
 
 function getStatusClass(status) {
@@ -190,7 +212,20 @@ function formatTime(dateString) {
 function getMinutesLate(item) {
   const dueBack = new Date(item.dueBack);
   if (Number.isNaN(dueBack.getTime())) return 0;
-  return Math.max(0, Math.floor((new Date() - dueBack) / 60000));
+
+  const compareTime = item.returnTime ? new Date(item.returnTime) : new Date();
+  if (Number.isNaN(compareTime.getTime())) return 0;
+
+  return Math.max(0, Math.ceil((compareTime - dueBack) / 60000));
+}
+
+function getMinutesLateAtReturn(item) {
+  if (!item.returnTime) return 0;
+  return getMinutesLate(item);
+}
+
+function isReturnedLate(item) {
+  return Boolean(item.returnTime && getMinutesLateAtReturn(item) > 0);
 }
 
 function renderTable() {
@@ -202,7 +237,6 @@ function renderTable() {
 
   breakData.forEach((item, index) => {
     item.slackLateNotified = Boolean(item.slackLateNotified || item.lateAlertSent);
-    const oldStatus = item.status;
     const status = getStatus(item);
     item.status = status;
 
@@ -210,21 +244,20 @@ function renderTable() {
     if (status === "Late") lateCount += 1;
     if (status === "Returned") returnedCount += 1;
 
-    if (status === "Late" && oldStatus !== "Late" && !item.slackLateNotified) {
-      sendSlackLateAlert(item);
-      item.slackLateNotified = true;
-      item.lateAlertSent = true;
-    }
+    const returnedLate = isReturnedLate(item);
+    const returnedCellClass = returnedLate ? "return-late" : "";
+    const rowClass = returnedLate ? "late-returned-row" : "";
 
     const row = document.createElement("tr");
+    row.className = rowClass;
     row.innerHTML = `
       <td>${escapeHtml(item.badge)}</td>
       <td>${escapeHtml(item.name)}</td>
       <td>${formatTime(item.startTime)}</td>
       <td>${formatTime(item.dueBack)}</td>
-      <td>${formatTime(item.returnTime)}</td>
+      <td class="${returnedCellClass}">${formatTime(item.returnTime)}</td>
       <td><span class="status-pill ${getStatusClass(status)}">${status}</span></td>
-      <td>${status !== "Returned"
+      <td>${!item.returnTime
         ? `<button type="button" data-action="return" data-index="${index}">Return</button>`
         : `<button type="button" class="btn-danger" data-action="delete" data-index="${index}">Delete</button>`}
       </td>
@@ -239,9 +272,22 @@ function renderTable() {
   saveData();
 }
 
-function markReturned(index) {
-  breakData[index].returnTime = new Date().toISOString();
-  breakData[index].status = "Returned";
+async function markReturned(index) {
+  const item = breakData[index];
+  if (!item) return;
+
+  item.returnTime = new Date().toISOString();
+
+  const minutesLate = getMinutesLateAtReturn(item);
+
+  if (minutesLate > 0) {
+    item.status = "Late";
+    item.lateMinutes = minutesLate;
+    await sendReturnedLateAlert(item);
+  } else {
+    item.status = "Returned";
+  }
+
   saveData();
   renderTable();
   focusScanner();
@@ -266,7 +312,7 @@ function clearAllData() {
 function downloadData() {
   const exportObject = {
     app: "Break Time Tracker",
-    version: "1.3.0",
+    version: "1.4.0",
     exportedAt: new Date().toISOString(),
     settings: {
       breakMinutes: settings.breakMinutes,
@@ -336,7 +382,7 @@ function uploadData(event) {
 }
 
 function normalizeRow(item) {
-  return {
+  const row = {
     id: item.id || getId(),
     badge: String(item.badge || ""),
     name: item.name || "Unknown",
@@ -345,8 +391,17 @@ function normalizeRow(item) {
     returnTime: item.returnTime || "",
     status: item.status || "On Break",
     slackLateNotified: Boolean(item.slackLateNotified || item.lateAlertSent),
-    lateAlertSent: Boolean(item.lateAlertSent || item.slackLateNotified)
+    lateAlertSent: Boolean(item.lateAlertSent || item.slackLateNotified),
+    returnLateAlertSent: Boolean(item.returnLateAlertSent),
+    lateMinutes: Number(item.lateMinutes || 0)
   };
+
+  row.status = getStatus(row);
+  if (isReturnedLate(row)) {
+    row.lateMinutes = getMinutesLateAtReturn(row);
+  }
+
+  return row;
 }
 
 function getLatePeople() {
@@ -367,15 +422,16 @@ function slackTextPayload(message) {
   };
 }
 
-function buildSingleLatePayload(item) {
+function buildReturnedLatePayload(item) {
   const name = item.name && item.name !== "Unknown" ? item.name : "Unknown name";
-  const minutesLate = getMinutesLate(item);
+  const minutesLate = getMinutesLateAtReturn(item);
 
   const message = [
-    "🚨 Break Late Alert",
+    "🚨 Late From Break Return",
     `Name: ${name}`,
     `Badge: ${item.badge}`,
     `Due Back: ${formatTime(item.dueBack)}`,
+    `Returned: ${formatTime(item.returnTime)}`,
     `Minutes Late: ${minutesLate}`
   ].join("\n");
 
@@ -386,15 +442,16 @@ function buildLateListPayload() {
   const latePeople = getLatePeople();
 
   if (latePeople.length === 0) {
-    return slackTextPayload("✅ No one is currently late from break.");
+    return slackTextPayload("✅ No one is late from break.");
   }
 
   const lines = latePeople.map(item => {
     const name = item.name && item.name !== "Unknown" ? item.name : "Unknown name";
-    return `• ${name} | Badge ${item.badge} | Due ${formatTime(item.dueBack)} | ${getMinutesLate(item)} min late`;
+    const returnedText = item.returnTime ? ` | Returned ${formatTime(item.returnTime)}` : " | Still out";
+    return `• ${name} | Badge ${item.badge} | Due ${formatTime(item.dueBack)}${returnedText} | ${getMinutesLate(item)} min late`;
   });
 
-  return slackTextPayload(`🚨 Current Late Break List (${latePeople.length})\n${lines.join("\n")}`);
+  return slackTextPayload(`🚨 Late From Break List (${latePeople.length})\n${lines.join("\n")}`);
 }
 
 async function sendSlackPayload(payload) {
@@ -424,9 +481,15 @@ async function sendSlackPayload(payload) {
   }
 }
 
-async function sendSlackLateAlert(item) {
+async function sendReturnedLateAlert(item) {
   if (!isSlackReady()) return false;
-  return sendSlackPayload(buildSingleLatePayload(item));
+  if (!isReturnedLate(item)) return false;
+  if (item.returnLateAlertSent) return false;
+
+  item.returnLateAlertSent = true;
+  item.lateMinutes = getMinutesLateAtReturn(item);
+
+  return sendSlackPayload(buildReturnedLatePayload(item));
 }
 
 async function sendLateListToSlack() {
