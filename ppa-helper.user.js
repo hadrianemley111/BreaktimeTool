@@ -1,6 +1,7 @@
 // ==UserScript==
 // @name         BreaktimeTool PPA Auto Name
 // @namespace    hadrianemley111-breaktime
+// @Author       @hademley
 // @version      1.1
 // @description  Pull AA name from PPA before BreaktimeTool submits badge
 // @match        https://hadrianemley111.github.io/BreaktimeTool/*
