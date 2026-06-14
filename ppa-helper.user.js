@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         BreaktimeTool PPA Auto Name
-// @namespace    Break Tool
-// @author       Hademley
+// @name         BreaktimeTool PPA Auto Name Fixed
+// @author       hademley
+// @namespace    hadrianemley111-breaktime
 // @version      1.1
 // @description  Pull AA name from PPA before BreaktimeTool submits badge
 // @match        https://hadrianemley111.github.io/BreaktimeTool/*
@@ -55,69 +55,60 @@
     });
   }
 
-  function clean(text) {
-    return String(text || '')
+  function formatPpaName(text) {
+    text = String(text || '')
       .replace(/\s+/g, ' ')
-      .replace(/Employee Name/i, '')
-      .replace(/Name/i, '')
-      .replace(/[:\-]/g, '')
       .trim();
-  }
 
-  function looksLikeName(text) {
-    text = clean(text);
+    // Example:
+    // Emley,Hadrian (hademley) -> Emley,Hadrian
+    text = text.replace(/\s*\([^)]*\)\s*/g, '').trim();
 
-    if (!text) return false;
-    if (/\d/.test(text)) return false;
-    if (text.length > 80) return false;
+    // Example:
+    // Emley,Hadrian -> Hadrian Emley
+    if (text.includes(',')) {
+      const parts = text.split(',');
+      const last = parts[0]?.trim();
+      const first = parts[1]?.trim();
 
-    const badWords = [
-      'amazon',
-      'ppa',
-      'midway',
-      'login',
-      'sign in',
-      'employee details',
-      'time details',
-      'error'
-    ];
+      if (first && last) {
+        return `${first} ${last}`;
+      }
+    }
 
-    if (badWords.some(w => text.toLowerCase().includes(w))) return false;
-
-    const parts = text.split(' ');
-    return parts.length >= 2 && parts.length <= 4;
+    return text;
   }
 
   function extractName(html) {
     const doc = new DOMParser().parseFromString(html, 'text/html');
-    const bodyText = doc.body?.innerText || '';
 
-    const patterns = [
-      /Employee\s+Name\s*[:\-]?\s*([A-Z][a-zA-Z.'-]+(?:\s+[A-Z][a-zA-Z.'-]+){1,3})/,
-      /Name\s*[:\-]?\s*([A-Z][a-zA-Z.'-]+(?:\s+[A-Z][a-zA-Z.'-]+){1,3})/,
-      /"employeeName"\s*:\s*"([^"]+)"/i,
-      /"name"\s*:\s*"([^"]+)"/i
-    ];
+    // Exact place shown on your PPA page:
+    // <span class="fold-control">Emley,Hadrian (hademley)</span>
+    const foldControl = doc.querySelector('span.fold-control');
 
-    for (const p of patterns) {
-      const match = html.match(p) || bodyText.match(p);
-      if (match && looksLikeName(match[1])) {
-        return clean(match[1]);
+    if (foldControl) {
+      const raw = foldControl.textContent;
+      const formatted = formatPpaName(raw);
+
+      if (formatted) {
+        console.log('[PPA] Found name from fold-control:', formatted);
+        return formatted;
       }
     }
 
-    const selectors = [
-      '[id*="name" i]',
-      '[class*="name" i]',
-      'h1',
-      'h2'
-    ];
+    // Backup search in page text
+    const bodyText = doc.body?.innerText || '';
 
-    for (const sel of selectors) {
-      const el = doc.querySelector(sel);
-      const text = clean(el?.textContent);
-      if (looksLikeName(text)) return text;
+    const match = bodyText.match(/([A-Z][a-zA-Z'-]+)\s*,\s*([A-Z][a-zA-Z'-]+)\s*\([^)]+\)/);
+
+    if (match) {
+      const formatted = `${match[2]} ${match[1]}`;
+      console.log('[PPA] Found name from body text:', formatted);
+      return formatted;
     }
+
+    console.warn('[PPA] Could not find name.');
+    console.log('[PPA] Body text first 1500:', bodyText.slice(0, 1500));
 
     return '';
   }
@@ -127,7 +118,9 @@
 
     if (!isBadge(badge)) return '';
 
-    if (cache.has(badge)) return cache.get(badge);
+    if (cache.has(badge)) {
+      return cache.get(badge);
+    }
 
     try {
       console.log('[PPA] Looking up badge:', badge);
@@ -135,19 +128,21 @@
       const res = await gmGet(ppaUrl(badge));
 
       console.log('[PPA] Status:', res.status);
-      console.log('[PPA] First 500 chars:', res.responseText.slice(0, 500));
+      console.log('[PPA] URL:', ppaUrl(badge));
 
-      if (res.status !== 200) return '';
+      if (res.status !== 200) {
+        console.warn('[PPA] Bad status:', res.status);
+        return '';
+      }
 
       const name = extractName(res.responseText);
 
       if (name) {
         cache.set(badge, name);
-        console.log('[PPA] Found:', name);
+        console.log('[PPA] Final name:', name);
         return name;
       }
 
-      console.warn('[PPA] No name found in page.');
       return '';
     } catch (err) {
       console.error('[PPA] Lookup failed:', err);
@@ -158,11 +153,22 @@
   function setNameInput(name) {
     const nameInput = getNameInput();
 
-    if (!nameInput || !name) return false;
+    if (!nameInput || !name) {
+      console.warn('[PPA] Name input not found or name blank.');
+      return false;
+    }
 
     nameInput.value = name;
-    nameInput.dispatchEvent(new Event('input', { bubbles: true }));
-    nameInput.dispatchEvent(new Event('change', { bubbles: true }));
+
+    nameInput.dispatchEvent(new Event('input', {
+      bubbles: true
+    }));
+
+    nameInput.dispatchEvent(new Event('change', {
+      bubbles: true
+    }));
+
+    console.log('[PPA] Filled name input:', name);
 
     return true;
   }
@@ -176,6 +182,7 @@
     const badge = String(badgeInput.value || '').trim();
     if (!isBadge(badge)) return;
 
+    // This prevents an infinite loop when we resend Enter
     if (badgeInput.dataset.ppaReady === badge) {
       delete badgeInput.dataset.ppaReady;
       return;
@@ -194,7 +201,7 @@
     if (name) {
       setNameInput(name);
     } else {
-      console.warn('[PPA] Name not found, submitting as Unknown.');
+      console.warn('[PPA] No name found. It will submit as Unknown.');
     }
 
     badgeInput.dataset.ppaReady = badge;
@@ -206,12 +213,12 @@
         bubbles: true,
         cancelable: true
       }));
-    }, 50);
+    }, 75);
   }
 
   document.addEventListener('keydown', handleBeforeSubmit, true);
 
   window.lookupPpaName = lookupName;
 
-  console.log('[PPA] BreaktimeTool PPA Auto Name loaded.');
+  console.log('[PPA] BreaktimeTool PPA Auto Name Fixed loaded.');
 })();
