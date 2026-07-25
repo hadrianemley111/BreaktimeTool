@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Break Kiosk</title>
+  <link rel="stylesheet" href="kiosk.css">
+</head>
+<body>
+  <main class="kiosk-shell">
+    <header class="top-bar">
+      <div>
+        <div class="amazon">amazon</div>
+        <p id="dashboardName">Break Kiosk</p>
+      </div>
+
+      <button id="returnButton" type="button">Return to Dashboard</button>
+    </header>
+
+    <section id="homeScreen" class="screen active" aria-live="polite">
+      <div class="badge-icon" aria-hidden="true">
+        <span></span>
+      </div>
+
+      <h1>Welcome!</h1>
+      <p class="main-message">Scan your badge to start or end your break.</p>
+      <p class="helper">Hold your badge near the scanner.</p>
+
+      <label class="scanner-label" for="badgeInput">Badge scanner</label>
+      <input
+        id="badgeInput"
+        type="text"
+        inputmode="numeric"
+        autocomplete="off"
+        aria-label="Badge scanner"
+      >
+
+      <div class="clock">
+        <span id="currentTime"></span>
+        <span id="currentDate"></span>
+      </div>
+    </section>
+
+    <section id="waitingScreen" class="screen" aria-live="assertive">
+      <div class="spinner" aria-hidden="true"></div>
+      <h1>Please wait…</h1>
+      <p>Checking your break status.</p>
+    </section>
+
+    <section id="successScreen" class="screen" aria-live="assertive">
+      <div class="result-icon success" aria-hidden="true">✓</div>
+      <h1 id="successTitle">Thank you!</h1>
+      <p id="successMessage"></p>
+    </section>
+
+    <section id="earlyScreen" class="screen" aria-live="assertive">
+      <div class="result-icon warning" aria-hidden="true">!</div>
+      <h1>Break just started</h1>
+      <p id="earlyMessage"></p>
+      <p class="countdown" id="countdown"></p>
+    </section>
+
+    <section id="errorScreen" class="screen" aria-live="assertive">
+      <div class="result-icon error" aria-hidden="true">×</div>
+      <h1>Scan not completed</h1>
+      <p id="errorMessage">Please try again.</p>
+    </section>
+  </main>
+
+  <script type="module" src="kiosk.js"></script>
+</body>
+</html>
