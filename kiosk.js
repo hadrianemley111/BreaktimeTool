@@ -11,6 +11,10 @@ import {
   setDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import {
+  getFunctions,
+  httpsCallable
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBJVVdULL-UenML7ut9iMl6ACA_LLM4AaQ",
@@ -27,6 +31,8 @@ const RESULT_DISPLAY_MS = 3500;
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
+const functions = getFunctions(firebaseApp, "us-central1");
+const sendBreakSlackFunction = httpsCallable(functions, "sendBreakSlack");
 
 const params = new URLSearchParams(window.location.search);
 const dashboardId = params.get("dashboard");
@@ -95,6 +101,48 @@ function updateClock() {
     day: "numeric",
     year: "numeric"
   });
+}
+
+function formatClockTime(value) {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "Unknown";
+  return date.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+}
+
+function buildReturnedLateMessage({ name, badge, dueBack, returnTime, minutesLate }) {
+  return [
+    "🚨 Late From Break Return",
+    `Dashboard: ${dashboardName}`,
+    `Name: ${name}`,
+    `Badge: ${badge}`,
+    `Due Back: ${formatClockTime(dueBack)}`,
+    `Returned: ${formatClockTime(returnTime)}`,
+    `Minutes Late: ${minutesLate}`
+  ].join("\n");
+}
+
+async function sendReturnedLateSlack(details, slackEnabled) {
+  if (!slackEnabled || details.minutesLate <= 0) return false;
+
+  const message = buildReturnedLateMessage(details);
+
+  try {
+    await sendBreakSlackFunction({
+      message,
+      text: message,
+      slackMessage: message,
+      name: details.name,
+      badge: details.badge,
+      dueBack: formatClockTime(details.dueBack),
+      returned: formatClockTime(details.returnTime),
+      minutesLate: details.minutesLate,
+      dashboard: dashboardName
+    });
+    return true;
+  } catch (error) {
+    console.error("Late return Slack notification failed:", error);
+    return false;
+  }
 }
 
 function getId() {
@@ -235,15 +283,41 @@ async function processScan(badge, scannedName = "") {
         ? Math.max(0, Math.ceil((returnTime.getTime() - dueBack.getTime()) / 60000))
         : 0;
 
+      const returnIso = returnTime.toISOString();
+
       await setDoc(
         dashboardBreakDocument(activeBreak.id),
         {
-          returnTime: returnTime.toISOString(),
+          returnTime: returnIso,
           lateMinutes: minutesLate,
           updatedAt: serverTimestamp()
         },
         { merge: true }
       );
+
+      if (minutesLate > 0 && !activeBreak.returnLateAlertSent) {
+        const sent = await sendReturnedLateSlack(
+          {
+            name,
+            badge,
+            dueBack: activeBreak.dueBack,
+            returnTime: returnIso,
+            minutesLate
+          },
+          Boolean(settings.slackEnabled)
+        );
+
+        if (sent) {
+          await setDoc(
+            dashboardBreakDocument(activeBreak.id),
+            {
+              returnLateAlertSent: true,
+              updatedAt: serverTimestamp()
+            },
+            { merge: true }
+          );
+        }
+      }
 
       showSuccess(
         `Thank you, ${name}!`,
