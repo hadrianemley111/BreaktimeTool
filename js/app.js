@@ -730,7 +730,27 @@ async function exitDashboard() {
   el.loginMessage.textContent = "";
   el.dashboardCode.focus();
 }
+function openKiosk() {
+  if (!activeDashboard) {
+    alert("Open a dashboard first.");
+    return;
+  }
 
+  const kioskUrl = new URL("kiosk.html", window.location.href);
+
+  kioskUrl.searchParams.set("dashboard", activeDashboard.id);
+  kioskUrl.searchParams.set("name", activeDashboard.name);
+
+  const kioskWindow = window.open(
+    kioskUrl.toString(),
+    "_blank",
+    "noopener=false"
+  );
+
+  if (!kioskWindow) {
+    alert("The browser blocked the kiosk window. Allow pop-ups for this site.");
+  }
+}
 function bindEvents() {
   el.loginButton.addEventListener("click", openDashboard);
 
