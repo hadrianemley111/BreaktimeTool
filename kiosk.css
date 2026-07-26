@@ -55,11 +55,11 @@ button {
   box-shadow: 0 5px 18px rgba(15, 23, 42, 0.22);
 }
 
-.amazon {
-  color: var(--orange);
-  font-size: 34px;
-  font-weight: 800;
-  letter-spacing: -2px;
+.amazon-logo {
+  display: block;
+  width: 150px;
+  height: auto;
+  object-fit: contain;
 }
 
 .top-bar p {
@@ -266,8 +266,8 @@ button {
     padding: 12px 15px;
   }
 
-  .amazon {
-    font-size: 27px;
+  .amazon-logo {
+    width: 125px;
   }
 
   #returnButton {
