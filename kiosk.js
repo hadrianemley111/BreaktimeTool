@@ -305,12 +305,6 @@ document.addEventListener("click", event => {
 });
 
 el.returnButton.addEventListener("click", () => {
-  if (window.opener && !window.opener.closed) {
-    window.opener.focus();
-    window.close();
-    return;
-  }
-
   window.location.href = "index.html";
 });
 
@@ -318,12 +312,25 @@ el.dashboardName.textContent = dashboardName;
 updateClock();
 setInterval(updateClock, 1000);
 
-onAuthStateChanged(auth, user => {
+onAuthStateChanged(auth, async user => {
   if (!user) {
     showError("Open the dashboard first, then click Open Kiosk.");
     return;
   }
 
-  showScreen("home");
-  focusScanner();
+  try {
+    const tokenResult = await user.getIdTokenResult(true);
+    const allowedDashboardId = tokenResult.claims.dashboardId;
+
+    if (!dashboardId || !allowedDashboardId || dashboardId !== allowedDashboardId) {
+      showError("Dashboard access could not be verified. Return to the dashboard and open the kiosk again.");
+      return;
+    }
+
+    showScreen("home");
+    focusScanner();
+  } catch (error) {
+    console.error("Could not verify kiosk access:", error);
+    showError("Could not verify dashboard access. Return to the dashboard and try again.");
+  }
 });
