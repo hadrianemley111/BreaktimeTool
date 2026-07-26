@@ -44,7 +44,7 @@ button {
 }
 
 .top-bar {
-  min-height: 88px;
+  min-height: 118px;
   padding: 14px 26px;
   display: flex;
   align-items: center;
@@ -57,7 +57,7 @@ button {
 
 .amazon-logo {
   display: block;
-  width: 150px;
+  width: 270px;
   height: auto;
   object-fit: contain;
 }
@@ -85,7 +85,7 @@ button {
 .screen {
   display: none;
   flex: 1;
-  min-height: calc(100vh - 88px);
+  min-height: calc(100vh - 118px);
   padding: 42px 24px;
   align-items: center;
   justify-content: center;
@@ -267,7 +267,7 @@ button {
   }
 
   .amazon-logo {
-    width: 125px;
+    width: 205px;
   }
 
   #returnButton {
