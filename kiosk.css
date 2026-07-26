@@ -188,7 +188,8 @@ button {
   clip-path: inset(50%);
 }
 
-#badgeInput {
+#badgeInput,
+#nameInput {
   position: fixed;
   left: -10000px;
   opacity: 0;

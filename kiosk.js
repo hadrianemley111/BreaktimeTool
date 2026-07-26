@@ -35,6 +35,7 @@ const dashboardName = params.get("name") || "Break Kiosk";
 const el = {
   dashboardName: document.getElementById("dashboardName"),
   badgeInput: document.getElementById("badgeInput"),
+  nameInput: document.getElementById("nameInput"),
   returnButton: document.getElementById("returnButton"),
   currentTime: document.getElementById("currentTime"),
   currentDate: document.getElementById("currentDate"),
@@ -72,6 +73,7 @@ function resetToHome(delay = 0) {
   resetTimer = setTimeout(() => {
     clearInterval(countdownTimer);
     el.badgeInput.value = "";
+    el.nameInput.value = "";
     isProcessing = false;
     showScreen("home");
     focusScanner();
@@ -155,6 +157,9 @@ function showEarlyReturn(name, earliestReturnAt) {
   showScreen("early");
   updateCountdown();
   countdownTimer = setInterval(updateCountdown, 250);
+
+  // Always return to the scan screen after three seconds.
+  resetToHome(3000);
 }
 
 async function getDashboardData() {
@@ -176,7 +181,7 @@ async function getDashboardData() {
   return { breaks, settings };
 }
 
-async function processScan(badge) {
+async function processScan(badge, scannedName = "") {
   if (!dashboardId) {
     showError("This kiosk was not opened from a dashboard.");
     return;
@@ -191,9 +196,18 @@ async function processScan(badge) {
       String(item.badge || "") === badge && !item.returnTime
     );
 
-    const previousRecord = [...breaks]
+    const badgeRecords = [...breaks]
       .filter(item => String(item.badge || "") === badge)
-      .sort((a, b) => new Date(b.startTime) - new Date(a.startTime))[0];
+      .sort((a, b) => new Date(b.startTime) - new Date(a.startTime));
+
+    const previousRecord = badgeRecords[0];
+    const namedRecord = badgeRecords.find(item => {
+      const savedName = String(item.name || "").trim();
+      return savedName && savedName.toLowerCase() !== "unknown";
+    });
+
+    const resolvedName = String(scannedName || "").trim() ||
+      String(namedRecord?.name || "").trim();
 
     if (activeBreak) {
       const startTime = new Date(activeBreak.startTime).getTime();
@@ -203,7 +217,7 @@ async function processScan(badge) {
       }
 
       const earliestReturnAt = startTime + MINIMUM_BREAK_MS;
-      const name = friendlyName(activeBreak, badge);
+      const name = resolvedName || friendlyName(activeBreak, badge);
 
       if (Date.now() < earliestReturnAt) {
         showEarlyReturn(name, earliestReturnAt);
@@ -244,11 +258,11 @@ async function processScan(badge) {
     );
 
     const recordId = getId();
-    const name = friendlyName(previousRecord, badge);
+    const name = resolvedName || friendlyName(previousRecord, badge);
 
     await setDoc(dashboardBreakDocument(recordId), {
       badge,
-      name: previousRecord?.name || "Unknown",
+      name: name.startsWith("Badge ") ? "Unknown" : name,
       startTime: now.toISOString(),
       dueBack: dueBack.toISOString(),
       returnTime: "",
@@ -284,11 +298,13 @@ function handleBadgeInput() {
   if (isProcessing) return;
 
   const badge = el.badgeInput.value.trim();
+  const scannedName = el.nameInput.value.trim();
   if (!badge) return;
 
   isProcessing = true;
   el.badgeInput.value = "";
-  processScan(badge);
+  el.nameInput.value = "";
+  processScan(badge, scannedName);
 }
 
 el.badgeInput.addEventListener("keydown", event => {
