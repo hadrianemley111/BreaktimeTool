@@ -753,6 +753,7 @@ function openKiosk() {
 }
 function bindEvents() {
   el.loginButton.addEventListener("click", openDashboard);
+  el.openKioskButton.addEventListener("click", openKiosk);
 
   el.dashboardCode.addEventListener("keydown", event => {
     if (event.key === "Enter") {
