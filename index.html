@@ -390,11 +390,19 @@
 
       <label class="checkbox-row" for="slackEnabled">
         <input type="checkbox" id="slackEnabled">
-        <span>Send alerts using this dashboard's hidden Slack webhook</span>
+        <span>Send a Slack alert only when a late employee scans back in</span>
       </label>
 
+      <label for="slackWebhookUrl">Slack Workflow Webhook URL</label>
+      <input
+        type="password"
+        id="slackWebhookUrl"
+        placeholder="Paste the webhook URL from your Slack workflow"
+        autocomplete="off"
+      >
+
       <p class="settings-note">
-        The Slack webhook is stored securely in Firebase Secret Manager and is never shown in this website.
+        This webhook is saved only in this browser. The website sends the Slack workflow variable as <strong>message</strong>.
       </p>
 
       <div class="btn-row">
