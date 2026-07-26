@@ -53,6 +53,7 @@ let unsubscribeSettings = null;
 let lateCheckTimer = null;
 
 const el = {
+  openKioskButton: document.getElementById("openKioskButton"),
   loginScreen: document.getElementById("loginScreen"),
   dashboardCode: document.getElementById("dashboardCode"),
   loginButton: document.getElementById("loginButton"),
