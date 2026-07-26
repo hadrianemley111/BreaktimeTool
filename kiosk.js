@@ -133,33 +133,38 @@ function showError(message) {
 }
 
 function showEarlyReturn(name, earliestReturnAt) {
+  // Cancel any timer left over from another result screen.
+  clearTimeout(resetTimer);
+  clearInterval(countdownTimer);
+
   el.earlyMessage.textContent =
     `${name}, please wait at least five minutes before scanning back in.`;
 
   const updateCountdown = () => {
-    const remainingMs = earliestReturnAt - Date.now();
-
-    if (remainingMs <= 0) {
-      clearInterval(countdownTimer);
-      el.countdown.textContent = "You may scan back in now.";
-      resetToHome(1800);
-      return;
-    }
-
+    const remainingMs = Math.max(0, earliestReturnAt - Date.now());
     const totalSeconds = Math.ceil(remainingMs / 1000);
     const minutes = Math.floor(totalSeconds / 60);
     const seconds = totalSeconds % 60;
 
-    el.countdown.textContent =
-      `Try again in ${minutes}:${String(seconds).padStart(2, "0")}`;
+    el.countdown.textContent = remainingMs > 0
+      ? `Try again in ${minutes}:${String(seconds).padStart(2, "0")}`
+      : "You may scan back in now.";
   };
 
   showScreen("early");
   updateCountdown();
   countdownTimer = setInterval(updateCountdown, 250);
 
-  // Always return to the scan screen after three seconds.
-  resetToHome(3000);
+  // This screen must always close after exactly three seconds.
+  resetTimer = setTimeout(() => {
+    clearInterval(countdownTimer);
+    countdownTimer = null;
+    el.badgeInput.value = "";
+    if (el.nameInput) el.nameInput.value = "";
+    isProcessing = false;
+    showScreen("home");
+    focusScanner();
+  }, 3000);
 }
 
 async function getDashboardData() {
