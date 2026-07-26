@@ -50,7 +50,6 @@ let settings = { ...DEFAULT_SETTINGS };
 let activeDashboard = null;
 let unsubscribeBreaks = null;
 let unsubscribeSettings = null;
-let lateCheckTimer = null;
 
 const el = {
   openKioskButton: document.getElementById("openKioskButton"),
@@ -319,10 +318,6 @@ function stopDashboardListeners() {
   unsubscribeBreaks = null;
   unsubscribeSettings = null;
 
-  if (lateCheckTimer) {
-    clearInterval(lateCheckTimer);
-    lateCheckTimer = null;
-  }
 }
 
 function startDashboardListeners() {
@@ -353,7 +348,6 @@ function startDashboardListeners() {
     error => console.error("Settings sync failed:", error)
   );
 
-  lateCheckTimer = setInterval(checkForNewLatePeople, 15000);
 }
 
 async function scanBadge() {
@@ -536,7 +530,12 @@ async function sendSlackMessage(message, showError = false) {
   }
 
   try {
-    await sendBreakSlackFunction({ message });
+    const result = await sendBreakSlackFunction({ message });
+
+    if (!result.data?.success) {
+      throw new Error("Firebase did not confirm the Slack message.");
+    }
+
     return true;
   } catch (error) {
     console.error("Secure Slack call failed:", error);
@@ -565,47 +564,20 @@ async function testSlack() {
   }
 
   const sent = await sendSlackMessage(
-    `Slack connected for ${activeDashboard.name}.`,
+    [
+      "✅ Break Time Tracker Connected",
+      `Dashboard: ${activeDashboard.name}`,
+      `Test Time: ${new Date().toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit"
+      })}`
+    ].join("\n"),
     true
   );
 
   setLastScan(sent ? "Slack test sent." : "Slack test failed.");
   if (sent) alert(`Slack connected for ${activeDashboard.name}.`);
   focusScanner();
-}
-
-async function checkForNewLatePeople() {
-  if (!activeDashboard || !settings.slackEnabled) {
-    renderTable();
-    return;
-  }
-
-  const newlyLate = breakData.filter(
-    item => !item.returnTime && getStatus(item) === "Late" && !item.lateAlertSent
-  );
-
-  for (const item of newlyLate) {
-    const sent = await sendSlackMessage(
-      [
-        "🚨 Late From Break",
-        `Dashboard: ${activeDashboard.name}`,
-        `Name: ${item.name || "Unknown"}`,
-        `Badge: ${item.badge}`,
-        `Due Back: ${formatTime(item.dueBack)}`,
-        `Minutes Late: ${getMinutesLate(item)}`
-      ].join("\n")
-    );
-
-    if (sent) {
-      await setDoc(
-        dashboardBreakDocument(item.id),
-        { lateAlertSent: true, updatedAt: serverTimestamp() },
-        { merge: true }
-      );
-    }
-  }
-
-  renderTable();
 }
 
 function downloadData() {
