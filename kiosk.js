@@ -11,6 +11,10 @@ import {
   setDoc,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import {
+  getFunctions,
+  httpsCallable
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-functions.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBJVVdULL-UenML7ut9iMl6ACA_LLM4AaQ",
@@ -27,6 +31,8 @@ const RESULT_DISPLAY_MS = 3500;
 const firebaseApp = initializeApp(firebaseConfig);
 const auth = getAuth(firebaseApp);
 const db = getFirestore(firebaseApp);
+const functions = getFunctions(firebaseApp, "us-central1");
+const sendBreakSlackFunction = httpsCallable(functions, "sendBreakSlack");
 
 const params = new URLSearchParams(window.location.search);
 const dashboardId = params.get("dashboard");
@@ -118,32 +124,27 @@ function buildReturnedLateMessage({ name, badge, dueBack, returnTime, minutesLat
 async function sendReturnedLateSlack(details, slackEnabled) {
   if (!slackEnabled || details.minutesLate <= 0) return false;
 
-  const webhook = localStorage.getItem("breakTrackerSlackWebhook") || "";
-  if (!webhook) {
-    console.error("No Slack Workflow webhook is saved in this browser.");
-    return false;
-  }
-
   const message = buildReturnedLateMessage(details);
 
   try {
-    const response = await fetch(webhook, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message })
+    await sendBreakSlackFunction({
+      message,
+      text: message,
+      slackMessage: message,
+      name: details.name,
+      badge: details.badge,
+      dueBack: formatClockTime(details.dueBack),
+      returned: formatClockTime(details.returnTime),
+      minutesLate: details.minutesLate,
+      dashboard: dashboardName
     });
-
-    if (!response.ok) {
-      const responseText = await response.text();
-      throw new Error(`Slack returned ${response.status}: ${responseText}`);
-    }
-
     return true;
   } catch (error) {
     console.error("Late return Slack notification failed:", error);
     return false;
   }
 }
+
 function getId() {
   if (window.crypto?.randomUUID) return window.crypto.randomUUID();
   return `${Date.now()}-${Math.random().toString(16).slice(2)}`;

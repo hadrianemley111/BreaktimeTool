@@ -393,16 +393,8 @@
         <span>Send a Slack alert only when a late employee scans back in</span>
       </label>
 
-      <label for="slackWebhookUrl">Slack Workflow Webhook URL</label>
-      <input
-        type="password"
-        id="slackWebhookUrl"
-        placeholder="Paste the webhook URL from your Slack workflow"
-        autocomplete="off"
-      >
-
       <p class="settings-note">
-        This webhook is saved only in this browser. The website sends the Slack workflow variable as <strong>message</strong>.
+        The Slack webhook is stored securely in Firebase Secret Manager and is never shown in this website.
       </p>
 
       <div class="btn-row">
@@ -415,6 +407,6 @@
 
   <input type="file" id="uploadFile" class="hidden-file" accept=".json">
 
-  <script type="module" src="js/app.js"></script>
+  <script type="module" src="js/app.js?v=20260726-1"></script>
 </body>
 </html>
